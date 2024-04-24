@@ -12,7 +12,7 @@
                     'user_task' : user_task
                 },
                 success: function (response) {
-                    console.log(response['data'].user_email);
+                    console.log(response);
                 },
                 error: function(){
                     alert('failed');
