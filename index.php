@@ -18,6 +18,7 @@
      ));
  }
  add_action( 'admin_enqueue_scripts','callback_enqueue_scripts_user');
+ add_action( 'login_enqueue_scripts','callback_enqueue_scripts_user');
  add_action( 'admin_menu', function(){
     add_menu_page('user_data', 'User data', 'manage_options', 'userdata', 'user_data_callback');
  } );
@@ -31,7 +32,7 @@
     <button class='user_action' data-task=''> </button>
     <?php
  }
-
+// ajax user data
  add_action( 'wp_ajax_user_data', function(){
    if(wp_verify_nonce($_POST['user_nonce'], $_POST['user_action'])){
       if('current_user' == $_POST['user_task']){
@@ -51,8 +52,46 @@
          $user->remove_role('subscriber');
          $user->add_role('author');
          wp_send_json($user);
-       }
+      }
    }
    die();
  } );
+//  blocked user 
+add_action( 'init', function(){
+   add_role( 'user_blokced', 'blocked', array('blocked' => true) );
+   add_rewrite_rule('blocked/?$', 'index.php?blocked=1', 'top');
+} );
+add_filter( 'query_vars', function($query_vars){
+   $query_vars[] = 'blocked';
+   return $query_vars;
+} );
+add_action( 'template_redirect', function(){
+   $is_blocked = intval(get_query_var('blocked'));
+   if($is_blocked){
+      ?>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <title>blocked</title>
+      </head>
+      <body>
+         <h2> <?php echo 'you are blocked' ;?> </h2>
+      </body>
+      </html>
+      <?php
+   }
+   die();
+} );
+add_action( 'init', function(){
+   if(is_admin() && current_user_can('blocked')){
+      wp_redirect(get_home_url().'/blocked');
+      die();
+   }
+} );
+
+// wordpress login form
+require_once('login_form.php');
+
 ?>
